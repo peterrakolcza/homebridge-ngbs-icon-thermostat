@@ -1,15 +1,31 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "NGBSiCONThermostat",
   "pluginType": "platform",
   "singular": true,
+  "headerDisplay": "<p align=\"center\"><img width=\"60%\" src=\"https://user-images.githubusercontent.com/43026681/101325266-63126600-3863-11eb-9382-4a2924f0e540.png\"></p><p align=\"center\">For help and support please visit our <a href=\"https://github.com/peterrakolcza/homebridge-ngbs-icon-thermostat\">GitHub Wiki</a>. We hope you find this plugin useful!</p>",
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Name",
+      "username": {
         "type": "string",
+        "title": "Username",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "placeholder": "Email or username",
+        "description": "Your NGBS account's email or username."
+      },
+      "password": {
+        "type": "string",
+        "title": "Password",
+        "placeholder": "Password",
+        "required": true,
+        "description": "Your NGBS saccount password."
+      },
+      "iCONid": {
+        "type": "string",
+        "title": "iCON ID",
+        "placeholder": "iCON ID (e.g. 123456789999)",
+        "required": true,
+        "description": "You can find it under System settings -> Home ID"
       }
     }
   }

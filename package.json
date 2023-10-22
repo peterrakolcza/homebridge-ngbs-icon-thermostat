@@ -1,16 +1,15 @@
 {
-  "private": true,
-  "displayName": "Plugin Name",
-  "name": "homebridge-plugin-name",
+  "displayName": "NGBS iCON Thermostat",
+  "name": "homebridge-ngbs-icon-thermostat",
   "version": "1.0.0",
-  "description": "A short description about what your plugin does.",
+  "description": "Homebridge plugin for NGBS iCON Thermostat.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "https://github.com/peterrakolcza/homebridge-ngbs-icon-thermostat.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/peterrakolcza/homebridge-ngbs-icon-thermostat/issues"
   },
   "engines": {
     "node": "^18.17.0",
@@ -26,7 +25,11 @@
   "keywords": [
     "homebridge-plugin"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "axios": "^1.5.1",
+    "cheerio": "^1.0.0-rc.12",
+    "form-data": "^4.0.0"
+  },
   "devDependencies": {
     "@types/node": "^18.16.20",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
