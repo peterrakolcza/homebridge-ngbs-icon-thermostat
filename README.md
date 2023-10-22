@@ -1,191 +1,273 @@
 <p align="center">
-
-<img src="https://github.com/homebridge/branding/raw/latest/logos/homebridge-wordmark-logo-vertical.png" width="150">
-
+  <img alt="NGBS iCON Thermostat Homebridge Plugin" src="https://raw.githubusercontent.com/peterrakolcza/homebridge-ngbs-icon-thermostat/latest/assets/config.png" width="500px">
 </p>
-
 <span align="center">
 
-# Homebridge Platform Plugin Template
+# NGBS iCON Thermostat Homebridge Plugin
+
+[![npm Release](https://flat.badgen.net/npm/v/homebridge-ngbs-icon-thermostat?icon=npm)](https://www.npmjs.com/package/homebridge-ngbs-icon-thermostat)
+
+[![npm Download Total](https://flat.badgen.net/npm/dt/homebridge-konnected?icon=npm)](https://www.npmjs.com/package/homebridge-konnected)
+
+[![Apple HomeKit](https://flat.badgen.net/badge/apple/homekit/f89f1a?icon=apple)](https://www.apple.com/ios/home/) 
 
 </span>
 
-This is a template Homebridge dynamic platform plugin and can be used as a base to help you get started developing your own plugin.
+## Supported Features
 
-This template should be used in conjunction with the [developer documentation](https://developers.homebridge.io/). A full list of all supported service types, and their characteristics is available on this site.
+<div align="left">
+  <img align="right" width="319" height="692" alt="Screen capture of Konnected accessories in HomeKit via the Konnected Homebridge plugin." src="https://user-images.githubusercontent.com/1437667/128083751-1eb31022-0c44-4954-9b0f-09c5c749d0f4.gif">
+  <b>Native HomeKit Security System Control</b>
+  <ul>
+    <li>Arm/Disarm Security System</li>
+    <li>Optional Home/Stay and Night Modes</li>
+    <li>Configurable Sensor Security System Triggering</li>
+    <li>Configurable Entry Delay Times</li>
+    <li>Traditional Alarm System Integration</li>
+    <li>Panic Button via Alarm Siren Switch</li>
+    <li>Inverting Sensors</li>
+    <li>Switch Trigger States (high vs low)</li>
+  </ul>
+  <b>Sensor States</b>
+  <ul>
+    <li>Contact</li>
+    <li>Motion</li>
+    <li>Glass Break</li>
+    <li>Temperature</li>
+    <li>Humidity</li>
+    <li>Smoke</li>
+    <li>Water Leak</li>
+  </ul>
+  <b>Switches/Actuators</b>
+  <ul>
+    <li>Beeper</li>
+    <li>Siren</li>
+    <li>Strobe Light</li>
+    <li>Generic Switch</li>
+  </ul>
+</div>
 
-### Clone As Template
+## Upcoming Features
 
-Click the link below to create a new GitHub Repository using this template, or click the *Use This Template* button above.
+  * Bypass Switch for Sensor Zones
+  * Virtual Zones for HomeKit Automation
+  * Professional 24/7 smart home monitoring (powered by [Noonlight](https://noonlight.com/))
 
-<span align="center">
+## Installation
 
-### [Create New Repository From Template](https://github.com/homebridge/homebridge-plugin-template/generate)
+  1. Install homebridge: `npm install -g homebridge`
+  2. Install this plugin: `npm install -g homebridge-konnected`
+  3. Update your configuration file
 
-</span>
+## Configuration
 
-### Setup Development Environment
-
-To develop Homebridge plugins you must have Node.js 18 or later installed, and a modern code editor such as [VS Code](https://code.visualstudio.com/). This plugin template uses [TypeScript](https://www.typescriptlang.org/) to make development easier and comes with pre-configured settings for [VS Code](https://code.visualstudio.com/) and ESLint. If you are using VS Code install these extensions:
-
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-
-### Install Development Dependencies
-
-Using a terminal, navigate to the project folder and run this command to install the development dependencies:
-
-```shell
-$ npm install
-```
-
-### Update package.json
-
-Open the [`package.json`](./package.json) and change the following attributes:
-
-- `name` - this should be prefixed with `homebridge-` or `@username/homebridge-`, is case-sensitive, and contains no spaces nor special characters apart from a dash `-`
-- `displayName` - this is the "nice" name displayed in the Homebridge UI
-- `repository.url` - Link to your GitHub repo
-- `bugs.url` - Link to your GitHub repo issues page
-
-When you are ready to publish the plugin you should set `private` to false, or remove the attribute entirely.
-
-### Update Plugin Defaults
-
-Open the [`src/settings.ts`](./src/settings.ts) file and change the default values:
-
-- `PLATFORM_NAME` - Set this to be the name of your platform. This is the name of the platform that users will use to register the plugin in the Homebridge `config.json`.
-- `PLUGIN_NAME` - Set this to be the same name you set in the [`package.json`](./package.json) file. 
-
-Open the [`config.schema.json`](./config.schema.json) file and change the following attribute:
-
-- `pluginAlias` - set this to match the `PLATFORM_NAME` you defined in the previous step.
-
-### Build Plugin
-
-TypeScript needs to be compiled into JavaScript before it can run. The following command will compile the contents of your [`src`](./src) directory and put the resulting code into the `dist` folder.
-
-```shell
-$ npm run build
-```
-
-### Link To Homebridge
-
-Run this command so your global installation of Homebridge can discover the plugin in your development environment:
-
-```shell
-$ npm link
-```
-
-You can now start Homebridge, use the `-D` flag, so you can see debug log messages in your plugin:
-
-```shell
-$ homebridge -D
-```
-
-### Watch For Changes and Build Automatically
-
-If you want to have your code compile automatically as you make changes, and restart Homebridge automatically between changes, you first need to add your plugin as a platform in `~/.homebridge/config.json`:
-```
+### Starter Settings for config.json:
+The following two fields are required for the Konnected plugin to start.
+```json
 {
-...
-    "platforms": [
-        {
-            "name": "Config",
-            "port": 8581,
-            "platform": "config"
-        },
-        {
-            "name": "<PLUGIN_NAME>",
-            //... any other options, as listed in config.schema.json ...
-            "platform": "<PLATFORM_NAME>"
-        }
-    ]
+  "name": "Konnected",
+  "platform": "konnected"
 }
 ```
 
-and then you can run:
+### What to Expect:
 
-```shell
-$ npm run watch
+After loading this plugin **for the first time**, it will attempt to discover the Konnected panel(s) on the same local network as Homebridge. Once discovered, the plugin will try to:
+1. adjust the Homebridge config.json file with details of the discovered panel(s), assigning a name, a unique identifier, the IP address, and port for each panel;
+2. provision each panel, the result is a fresh panel with unassigned zones in Homebridge.
+
+Once the plugin has completed the above two steps, you should also notice that a new security tile 'Konnected Alarm' is exposed in your HomeKit app's default room. You can rename this to whatever you want.
+
+For the security system tile to have any meaningful function you must add zones with sensors on your panel(s) to your config.json file in Homebridge.
+
+### Plugin and Zone Settings Example for config.json:
+The best way to generate an error-free config.json is by installing and using the [Config UI X Plugin](https://github.com/oznu/homebridge-config-ui-x#readme) for Homebridge. The Konnected Homebridge plugin binds to the Config UI X configuration GUI which makes setting up the zones a trivial process.
+
+For those without Config UI X, or are running this on HOOBS < 4.0, please see the following example configuration for this plugin:
+```json
+{
+  "name": "Konnected",
+  "platform": "konnected",
+  "advanced": {
+    "listenerPort": 5000,
+    "listenerIP": "192.168.2.213",
+    "discoveryTimeout": 10,
+    "entryDelaySettings": {
+      "delay": 60,
+      "pulseDuration": 975,
+      "pulsePause": 25,
+      "pulseRepeat": -1
+    },
+    "exitDelaySettings": {
+      "delay": 15,
+      "audibleBeeperModes": [
+        "0",
+        "1",
+        "2"
+      ]
+    }
+  },
+  "panels": [
+    {
+      "name": "Konnected V1/V2",
+      "uuid": "8f655392-a778-4fee-97b9-123456789abc",
+      "ipAddress": "192.168.1.110",
+      "port": 12345,
+      "blink": true,
+      "zones": [
+        {
+          "enabled": true,
+          "zoneNumber": "1",
+          "zoneType": "beeper",
+          "zoneLocation": "Front Entrance",
+          "switchSettings": {
+            "trigger": 1,
+            "pulseDuration": 1000,
+            "pulsePause": 500,
+            "pulseRepeat": 3,
+          }
+        },
+        {
+          "enabled": true,
+          "zoneNumber": "2",
+          "zoneType": "contact",
+          "zoneLocation": "Front Entrance",
+          "binarySensorSettings": {
+            "invert": false,
+            "audibleBeep": true,
+            "triggerableModes": [
+              "0",
+              "1",
+              "2"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Konnected Pro",
+      "uuid": "8f655392-a778-4fee-97b9-123456789abd",
+      "ipAddress": "192.168.1.120",
+      "port": 54321,
+      "blink": false,
+      "zones": [
+        {
+          "enabled": true,
+          "zoneNumber": "alarm1",
+          "zoneType": "siren",
+          "zoneLocation": "Hallway",
+          "switchSettings": {
+            "trigger": 1
+          }
+        },
+        {
+          "enabled": false,
+          "zoneNumber": "4",
+          "zoneType": "temphumid",
+          "zoneLocation": "Kitchen",
+          "environmentalSensorSettings": {
+            "pollInterval": 10
+          }
+        }
+      ]
+    }
+  ]
+}
 ```
 
-This will launch an instance of Homebridge in debug mode which will restart every time you make a change to the source code. It will load the config stored in the default location under `~/.homebridge`. You may need to stop other running instances of Homebridge while using this command to prevent conflicts. You can adjust the Homebridge startup command in the [`nodemon.json`](./nodemon.json) file.
+### Configuration Field Explanations:
 
-### Customise Plugin
+* **"platform"**: *(required)* Must always be "konnected" 
+* **"name"**: *(required)* Can be anything, it is the name that will appear in your Homebridge log.
+* **"advanced"**: An object of optional advanced plugin settings:
+  * **"listenerIP"**: *(optional)* Use this field to force the network IPv4 address that this Homebridge plugin will listen from for zone state changes. This is useful if the system hosting Homebridge/HOOBS has multiple active network adapters (The system is connected both via wifi and ethernet but certain traffic is routed to one or the other, etc.)*
+  * **"listenerPort"**: *(optional)* Use this field to force the network port that this plugin will listen for zone state changes on (between 1000 and 65535).
+  * **"discoveryTimeout"**: *(optional)* A length of time in seconds (between 1 and 300) to allow this plugin to discover all of Konnected panels on the network.
+  * **"entryDelaySettings"**: *(optional)* An object of settings related to the period of delay after someone enters (violates) the security system. If there is a beeper present, by default it will have a constant sound, but if you use the example values, it will produce a long tone once every second so you know how much time you have to disarm the security system:
+    * **"delay"**: *(optional)* The time it takes before the security system is triggered and the siren zone is triggered (in seconds).
+    * **"pulseDuration"**: *(optional)* Beeper setting for how long the its pulse is maintained in the on state for when the system is violated (in milliseconds, e.g. 975).
+    * **"pulsePause"**: *(conditional - required if pulseRepeat exists)* Beeper setting for how long the it pauses between pulses (in milliseconds, e.g. 25).
+    * **"pulseRepeat"**: *(conditional - required if pulsePause exists)* Beeper setting for how many times it repeats the pulse sequence (infinite = -1, e.g., -1)
+  * **"exitDelaySettings"**: *(optional)* An object of settings for the delay of time used before the security system has been completely armed. By default, if there is a beeper present, the Away mode will have an audible beeper countdown over the course of the entire delay time:
+    * **"delay"**: *(optional)* The time it takes before the security system is armed, if nothing is set the default is 30 seconds (in seconds).
+    * **"audibleBeeperModes"**: *(optional)* Choose which arming modes will have an audible beeper countdown. Any one of the following:
+        * "0" for home/stay mode
+        * "1" for away mode
+        * "2" for night mode
+* **"panels"**: A panel must exist to associate different sensors and actuators with zones. This section is an array of objects that represent the various panel details and features as well as zones:
+  * **"name"** *(required)* The name of the specific panel.
+  * **"UUID"** *(required/auto-generated/readonly)* The unique identifier for the panel.
+  * **"ipAddress"** *(required/auto-generated/changeable)* The active IP address of the panel.
+  * **"port"** *(required/auto-generated/changeable)* The active network port of the panel.
+  * **"blink"** *(optional)* Blink panel LED when zones change/report their state. (Values: true or false).
+  * **"zones"**: *(optional)* An array of objects that represent assigned zones on the panel:
+    * **"enabled"**: Conveniently lets you to create zone settings in the config.json file but not have them actually be provisioned in the panel nor create an accessory in HomeKit. (Values: true or false).
+    * **"zoneNumber"**: (quoted number "#") Depending on the panel, the following assignments are allowed:
+      * V1/V2 Panel: "1" through "6", "out" or "alarm".
+      * Pro Panel: "1" through "12", "alarm1", "out", "alarm2_out2".
+    * **"zoneType"**: any one of the following:
+      * "contact"
+      * "motion"
+      * "glass" 
+      * "temperature"
+      * "temphumid" or "temperature_humidity" (will expose two sensors in HomeKit)
+      * "water"
+      * "smoke"
+      * "beeper" *(actuator switch)*
+      * "siren" *(actuator switch)*
+      * "strobe" *(actuator switch)*
+      * "switch" *(actuator switch)*
+    * **"zoneLocation"**: *(optional)* Custom name for the zone's location (E.g., Kitchen).
+    * **"binarySensorSettings"**: *(optional)* Binary-sensors-only settings (not temperature or humidity sensors):
+      * **"invert"**: *(optional)* Flip the state of a zone sensor's input. (Values: true or false).
+      * **"audibleBeep"**: *(optional)* Whether or not the sensor should trigger the beeper when its state changes. (Values: true or false).
+      * **"triggerableModes"**: *(optional)* Choose which modes this sensor will trigger the security system alarm. Any one of the following:
+        * "0" for home/stay mode
+        * "1" for away mode
+        * "2" for night mode
+    * **"environmentalSensorSettings"**: *(optional)* Temperature or humidity sensor settings:
+      * **"pollInterval"**: *(optional)* Length of time in minutes that this sensor will report its value. (Values between 1 and 1440, default is 3).
+    * **"switchSettings"**: *(optional)* Switch-only settings when actuating the switch:
+      * **"trigger"**: *(optional)* Force the state of a switch when it is triggered to 'ON'. (Values: "high" or "low", unselected default is "high").
+      * **"pulseDuration"**: *(optional)* How long the pulse is maintained in the on state for (in milliseconds).
+      * **"pulsePause"**: *(conditional - required if pulseRepeat exists)* Pause between pulses (in milliseconds).
+      * **"pulseRepeat"**: *(conditional - required if pulsePause exists)* Times to repeat pulse sequence (infinite = -1)
+      * **"triggerableModes"**: *(optional/experimental)* Choose which modes this switch will also trigger the security system alarm. Any one of the following:
+        * "0" for home/stay mode
+        * "1" for away mode
+        * "2" for night mode
 
-You can now start customising the plugin template to suit your requirements.
+## Particulars
 
-- [`src/platform.ts`](./src/platform.ts) - this is where your device setup and discovery should go.
-- [`src/platformAccessory.ts`](./src/platformAccessory.ts) - this is where your accessory control logic should go, you can rename or create multiple instances of this file for each accessory type you need to implement as part of your platform plugin. You can refer to the [developer documentation](https://developers.homebridge.io/) to see what characteristics you need to implement for each service type.
-- [`config.schema.json`](./config.schema.json) - update the config schema to match the config you expect from the user. See the [Plugin Config Schema Documentation](https://developers.homebridge.io/#/config-schema).
+### Security System Modes:
 
-### Versioning Your Plugin
+There are four main states for most traditional alarm systems (thanks to @ShaunBennett for nicely writing out their suggested purpose):
+1. **Home/Stay:** You might want to freely roam your house while the perimeter is secure, yet be alerted when smoke/water/CO sensors detect problems or front/side doors/gates are opened unexpectedly.
+2. **Night:** You sleep upstairs and want to only have motion sensors downstairs trigger the security system at night.
+3. **Away:** Set as many binary sensors as you like to detect changes and trigger the security system.
+4. **Disarmed:** Nothing will trigger the security system at all.
 
-Given a version number `MAJOR`.`MINOR`.`PATCH`, such as `1.4.3`, increment the:
+That being said, HomeKit has the ability to programmatically hide both the Home/Stay mode and the Night mode if you don't use them. What's even better – this plugin will dynamically choose whether or not these security system modes are needed based on what ***triggerable modes*** are selected for sensors or switches.
 
-1. **MAJOR** version when you make breaking changes to your plugin,
-2. **MINOR** version when you add functionality in a backwards compatible manner, and
-3. **PATCH** version when you make backwards compatible bug fixes.
+If you don't want a Night mode for the security system, remove the Night mode from the triggerable mode setting for all sensors and switches; the same goes for the Home/Stay mode as well.
 
-You can use the `npm version` command to help you with this:
+### Triggering Beeper, Siren, and Strobe Actuators:
 
-```shell
-# major update / breaking changes
-$ npm version major
+The Konnected Homebridge plugin affords some automatic conveniences when actuating Beepers, Sirens and Strobe zones. This means that if you wish to have any of these types of devices working in your security system, they must be specifically set in the zone to be a "beeper", "siren", or "strobe".
 
-# minor update / new features
-$ npm version update
+Homebridge will automatically find the beepers, sirens and strobe switches, no matter what panel they are on, and actuate them based on their configuration.
 
-# patch / bugfixes
-$ npm version patch
-```
+**For Example:**
 
-### Publish Package
+When the security system is in a state of 'entry delay', beeper zones may be triggered to warn a user that the system is armed and needs to be disarmed.
+When the security system has passed the time of 'entry delay' and becomes triggered, the alarm should sound and the siren and strobe light zones will be triggered.
 
-When you are ready to publish your plugin to [npm](https://www.npmjs.com/), make sure you have removed the `private` attribute from the [`package.json`](./package.json) file then run:
+The great thing is that you can have multiple beepers, or sirens and strobe lights all fire off as one – but exist on different panels and zones across your house.
 
-```shell
-$ npm publish
-```
+## Troubleshooting
 
-If you are publishing a scoped plugin, i.e. `@username/homebridge-xxx` you will need to add `--access=public` to command the first time you publish.
+### Missing/Stale Accessories:
 
-#### Publishing Beta Versions
+Sometimes you may need to reboot Homebridge **once-more** after changes made to the configuration for the zone accessories to show up the first time or to reflect the changes and work properly in HomeKit. This is partially because this Homebridge plugin uses a cache to keep it performant and needs to rebuild it once on launch, and then read from it on second launch to update the accessories in HomeKit.
 
-You can publish *beta* versions of your plugin for other users to test before you release it to everyone.
-
-```shell
-# create a new pre-release version (eg. 2.1.0-beta.1)
-$ npm version prepatch --preid beta
-
-# publish to @beta
-$ npm publish --tag=beta
-```
-
-Users can then install the  *beta* version by appending `@beta` to the install command, for example:
-
-```shell
-$ sudo npm install -g homebridge-example-plugin@beta
-```
-
-### Best Practices
-Consider creating your plugin with the [Homebridge Verified](https://github.com/homebridge/verified) criteria in mind. This will help you to create a plugin that is easy to use and works well with Homebridge.
-You can then submit your plugin to the Homebridge Verified list for review.
-The most up-to-date criteria can be found [here](https://github.com/homebridge/verified#requirements).
-For reference, the current criteria are:
-
-- The plugin must successfully install.
-- The plugin must implement the [Homebridge Plugin Settings GUI](https://github.com/oznu/homebridge-config-ui-x/wiki/Developers:-Plugin-Settings-GUI).
-- The plugin must not start unless it is configured.
-- The plugin must not execute post-install scripts that modify the users' system in any way.
-- The plugin must not contain any analytics or calls that enable you to track the user.
-- The plugin must not throw unhandled exceptions, the plugin must catch and log its own errors.
-- The plugin must be published to npm and the source code available on GitHub.
-  - A GitHub release - with patch notes - should be created for every new version of your plugin.
-- The plugin must run on all [supported LTS versions of Node.js](https://github.com/homebridge/homebridge/wiki/How-To-Update-Node.js), at the time of writing this is Node.js v16 and v18.
-- The plugin must not require the user to run Homebridge in a TTY or with non-standard startup parameters, even for initial configuration.
-- If the plugin needs to write files to disk (cache, keys, etc.), it must store them inside the Homebridge storage directory.
-
-### Useful Links
-Note these links are here for help but are not supported/verified by the Homebridge team
-- [Custom Characteristics](https://github.com/homebridge/homebridge-plugin-template/issues/20)
+Also it's always good to restart the HomeKit app after changes made to the Homebridge configuration as HomeKit does some background cleanup to the states and presence of devices in its accessory database.
