@@ -30,6 +30,7 @@
 ## Upcoming Features
 
   * Add support for manually switching between heating and cooling for supported homes
+  * Add Farenheit support and Display unit switching
   * Manage timetable settings
   * More testing
 
