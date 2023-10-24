@@ -3,11 +3,14 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { NGBSiCONThermostatAccessory } from './platformAccessory';
 
-import { login, getData } from './client';
+import { login, getDevices, getData } from './client';
 
 export let globalLogger: Logger;
 export let sessionID: string;
 export let iCONid: string;
+export let username: string;
+export let password: string;
+
 
 /**
  * HomebridgePlatform
@@ -28,6 +31,8 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
   ) {
     globalLogger = this.log;
     iCONid = this.config['iCONid'];
+    username = config['username'];
+    password = config['password'];
     this.log.debug('Finished initializing platform:', this.config.name);
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -37,9 +42,8 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
-      login(config['username'], config['password']).then((session) => {
+      login().then((session) => {
         sessionID = session as string;
-        globalLogger.debug('Successful login, session cookie: ' + sessionID);
         this.discoverDevices();
       });
     });
@@ -62,17 +66,23 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
    * must not be registered again to prevent "duplicate UUID" errors.
    */
   async discoverDevices() {
-    const response = await getData();
+    const fetchedData = await getDevices();
+    let Devices;
+    if (fetchedData !== null) {
+      Devices = fetchedData.map(device => {
+        return {
+          UniqueId: device.ID,
+          DisplayName: device.title,
+        };
+      });
+    } else {
+      const response = await getData();
+      const homes = response.ICONS;
+      const homeIds = Object.keys(homes);
 
-    const home = response.ICONS[this.config['iCONid']];
-    const devices = home.DP;
-    const Devices = devices.map(device => {
-      return {
-        UniqueId: device.ID,
-        DisplayName: device.title,
-      };
-    });
-
+      globalLogger.info('Available Home IDs associated with the given account: ' + homeIds);
+      throw new this.api.hap.HapStatusError(this.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+    }
 
     // loop over the discovered devices and register each one if it has not already been registered
     for (const device of Devices) {

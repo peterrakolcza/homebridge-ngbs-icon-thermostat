@@ -1,7 +1,7 @@
 {
   "displayName": "NGBS iCON Thermostat",
   "name": "homebridge-ngbs-icon-thermostat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Homebridge plugin for NGBS iCON Thermostat.",
   "license": "Apache-2.0",
   "repository": {
@@ -12,7 +12,7 @@
     "url": "https://github.com/peterrakolcza/homebridge-ngbs-icon-thermostat/issues"
   },
   "engines": {
-    "node": "^18.17.0",
+    "node": "^18.16.0 || ^20.8.0",
     "homebridge": "^1.6.0"
   },
   "main": "dist/index.js",
