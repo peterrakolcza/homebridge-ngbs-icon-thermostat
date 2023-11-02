@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Date: Fri, 13 Oct 2023 16:34:04 GMT
+Server: Apache/2.2.22 (Debian)
+X-Powered-By: PHP/5.4.45-0+deb7u2
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+Pragma: no-cache
+Vary: Accept-Encoding
+Content-Length: 1206
+Connection: close
+Content-Type: text/html
+
+
+{"token":"***REDRACTED***","expire":1697228480,"user":"***REDRACTED***","ICON":{"SNR":"***REDRACTED***","NAME":"***REDRACTED***","ADDRESS":"***REDRACTED***   [***REDRACTED***]","VID":"11377","FIRMWARE":"1079","MESSAGES":"0","TICKETS":0,"ISADMIN":1,"ONLINE":1,"WTEMP":35.2,"ETEMP":19.2,"AO":0,"HCMASTER":0,"PUMP":0,"WFROST":"nincs","OVERHEAT":"inakt\u00edv","BATT":"rendben","HC_MASTERICON":"Nappali","HC_SWITCH_MODE":"k\u00f6zponti","HC_SWITCH":0,"HC_SW_VALUE":0,"CON_OUT":false,"CON_VALUE":0,"HEATGEN":false,"SW_OUT":false,"LAST_SYNC":"2023-10-13 18:34:24","LAST_READ":"2023-10-13 18:34:24","ERR":0,"USERS":{"ADMIN":["***REDRACTED***"]},"DP":[{"ID":"1.1","title":"Nappali","HC":0,"TEMP":25.9,"REQ":20,"RH":49.4,"DEW":14.4,"OUT":0,"TPR":0,"PL":0,"CE":1,"DI":0,"DWP":0,"TMIN":15,"TMAX":25,"MEDTEMP":20,"LIM":5},{"ID":"1.2","title":"Szoba ","HC":0,"TEMP":24.2,"REQ":20,"RH":55.4,"DEW":14.7,"OUT":0,"TPR":0,"PL":0,"CE":1,"DI":0,"DWP":0,"TMIN":15,"TMAX":25,"MEDTEMP":20,"LIM":5}],"EXT":false,"WSTAT":[],"TPR":{"HEAT":[],"COOL":[]},"SERVICES":{"GMESS":1,"DSTAT":1,"WINFO":0,"ENERGY":0,"TPR":1,"TPR_ECO":0,"TPR_SWITCH":0,"WOPEN":0,"ADDGUEST":1,"TICKET":1}}}

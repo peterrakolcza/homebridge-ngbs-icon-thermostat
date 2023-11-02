@@ -1,0 +1,34 @@
+POST /Ax HTTP/1.1
+Host: www.enzoldhazam.hu
+Content-Length: 539
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.132 Safari/537.36
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryY3BOYIYE0xu0KAAW
+Accept: */*
+Origin: http://www.enzoldhazam.hu
+Referer: http://www.enzoldhazam.hu/app
+Accept-Encoding: gzip, deflate, br
+Accept-Language: hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7
+Cookie: PHPSESSID=***REDRACTED***
+Connection: close
+
+------WebKitFormBoundaryY3BOYIYE0xu0KAAW
+Content-Disposition: form-data; name="action"
+
+setThermostat
+------WebKitFormBoundaryY3BOYIYE0xu0KAAW
+Content-Disposition: form-data; name="icon"
+
+***REDRACTED***
+------WebKitFormBoundaryY3BOYIYE0xu0KAAW
+Content-Disposition: form-data; name="thermostat"
+
+1.1
+------WebKitFormBoundaryY3BOYIYE0xu0KAAW
+Content-Disposition: form-data; name="attr"
+
+CE
+------WebKitFormBoundaryY3BOYIYE0xu0KAAW
+Content-Disposition: form-data; name="value"
+
+0
+------WebKitFormBoundaryY3BOYIYE0xu0KAAW--

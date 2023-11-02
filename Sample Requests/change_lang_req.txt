@@ -1,0 +1,28 @@
+POST /Ax HTTP/1.1
+Host: enzoldhazam.hu
+Cookie: PHPSESSID=***REDRACTED***
+Content-Length: 241
+Sec-Ch-Ua: 
+Sec-Ch-Ua-Platform: ""
+Sec-Ch-Ua-Mobile: ?0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.111 Safari/537.36
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryUBxhgVtrvQ1mt5MW
+Accept: */*
+Origin: https://enzoldhazam.hu
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: https://enzoldhazam.hu/app
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+------WebKitFormBoundaryUBxhgVtrvQ1mt5MW
+Content-Disposition: form-data; name="action"
+
+setLanguage
+------WebKitFormBoundaryUBxhgVtrvQ1mt5MW
+Content-Disposition: form-data; name="lang"
+
+EN
+------WebKitFormBoundaryUBxhgVtrvQ1mt5MW--

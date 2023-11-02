@@ -1,0 +1,10 @@
+GET /Ax?action=iconList HTTP/1.1
+Host: www.enzoldhazam.hu
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.132 Safari/537.36
+Accept: */*
+Referer: http://www.enzoldhazam.hu/app
+Accept-Encoding: gzip, deflate, br
+Accept-Language: hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7
+Cookie: PHPSESSID=***REDRACTED***
+Connection: close
+
