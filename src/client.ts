@@ -1,11 +1,11 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
 import FormData from 'form-data';
-import { globalLogger, sessionID, iCONid, username, password } from './platform';
+import { globalLogger, sessionID, iCONid } from './platform';
 
 const baseURL = 'https://enzoldhazam.hu';
 
-export async function login() {
+export async function login(username: string, password: string) {
   try {
     const response = await axios.get(baseURL);
     const $ = cheerio.load(response.data);
@@ -44,8 +44,6 @@ export async function login() {
 }
 
 export async function getData() {
-  login();
-
   try {
     const response = await axios.get(baseURL + '/Ax?action=iconList', {
       headers: {
@@ -62,8 +60,6 @@ export async function getData() {
 }
 
 export async function setAttr(deviceID: string, attr: string, value: string) {
-  login();
-
   try {
     const form = new FormData();
 

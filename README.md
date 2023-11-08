@@ -45,7 +45,7 @@ This homebridge plugin exposes all of the NGBS iCON thermostats for native contr
 Although I have not personally conducted rigorous tests to verify this claim, preliminary indications suggest that the plugin exhibits potential compatibility not only with the NGBS iCON 200 series thermostats but also with the iCON 100 series devices.
 
 ## Installation
-To install the homebridge plugin:
+To install homebridge ct200:
 - Install the plugin through Homebridge Config UI X or manually by:
 ```
 $ npm install -g homebridge-ngbs-icon-thermostat

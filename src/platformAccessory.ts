@@ -1,6 +1,6 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
-import { NGBSiCONThermostat, globalLogger } from './platform';
+import { NGBSiCONThermostat } from './platform';
 import { setAttr, getDevices } from './client';
 
 /**
@@ -11,7 +11,6 @@ import { setAttr, getDevices } from './client';
 export class NGBSiCONThermostatAccessory {
   private service: Service;
   private id: number;
-  private displayUnitCelsius: boolean;
 
   constructor(
     private readonly platform: NGBSiCONThermostat,
@@ -29,7 +28,6 @@ export class NGBSiCONThermostatAccessory {
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.DisplayName);
     this.id = this.accessory.context.device.UniqueId;
-    this.displayUnitCelsius = true;
 
     this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature) // Global
       .onGet(this.getCurrentTemp.bind(this));
@@ -42,6 +40,7 @@ export class NGBSiCONThermostatAccessory {
       .onGet(this.getCurrentState.bind(this));
 
     this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState)
+      .onGet(this.getTargetState.bind(this))
       .onSet(this.setTargetState.bind(this))
       .setProps({
         minValue: 0,
@@ -58,16 +57,6 @@ export class NGBSiCONThermostatAccessory {
 
   }
 
-  celsiusToFahrenheit(celsius) {
-    const fahrenheit = (celsius * 9 / 5) + 32;
-    return fahrenheit;
-  }
-
-  fahrenheitToCelsius(fahrenheit) {
-    const celsius = (fahrenheit - 32) * 5 / 9;
-    return celsius;
-  }
-
   async findDevice() {
     const devices = await getDevices();
 
@@ -81,19 +70,11 @@ export class NGBSiCONThermostatAccessory {
   async getCurrentTemp(): Promise<CharacteristicValue> {
     const device = await this.findDevice();
 
-    if (!this.displayUnitCelsius) {
-      return this.celsiusToFahrenheit(device.TEMP);
-    }
-
     return device.TEMP;
   }
 
   async getTargetTemp(): Promise<CharacteristicValue> {
     const device = await this.findDevice();
-
-    if (!this.displayUnitCelsius) {
-      return this.celsiusToFahrenheit(device.REQ);
-    }
 
     return device.REQ;
   }
@@ -102,22 +83,17 @@ export class NGBSiCONThermostatAccessory {
     // Only allow changing in steps of 0.5
     const nearestHalfDecimal = Math.round(value as number / 0.5) * 0.5;
     await setAttr(this.id.toString(), 'CE', '0'); // set ECO mode
-
-    if (this.displayUnitCelsius) {
-      await setAttr(this.id.toString(), 'REQ', nearestHalfDecimal.toString());
-    } else {
-      await setAttr(this.id.toString(), 'REQ', this.fahrenheitToCelsius(nearestHalfDecimal).toString());
-    }
+    await setAttr(this.id.toString(), 'REQ', nearestHalfDecimal.toString());
   }
 
   async getCurrentState(): Promise<CharacteristicValue> {
     const device = await this.findDevice();
 
-    if (device.PUMP === 0) {
+    if (device.OUT === 0) {
       return this.platform.Characteristic.CurrentHeatingCoolingState.OFF;
-    } else if (device.PUMP === 1 && device.TEMP < device.REQ) {
+    } else if (device.OUT === 1 && device.TEMP < device.REQ) {
       return this.platform.Characteristic.CurrentHeatingCoolingState.HEAT;
-    } else if (device.PUMP === 1 && device.TEMP > device.REQ) {
+    } else if (device.OUT === 1 && device.TEMP > device.REQ) {
       return this.platform.Characteristic.CurrentHeatingCoolingState.COOL;
     }
 
@@ -126,9 +102,8 @@ export class NGBSiCONThermostatAccessory {
 
   async getTargetState(): Promise<CharacteristicValue> {
     const device = await this.findDevice();
-    globalLogger.debug(device.CE);
+
     if (device.CE === 1) {
-      globalLogger.debug('OFF');
       return this.platform.Characteristic.TargetHeatingCoolingState.OFF;
     } else {
       return this.platform.Characteristic.TargetHeatingCoolingState.AUTO;
@@ -146,21 +121,12 @@ export class NGBSiCONThermostatAccessory {
 
   // Also a global property
   async getDisplayUnits(): Promise<CharacteristicValue> {
-    if (this.displayUnitCelsius) {
-      return this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS;
-    } else {
-      return this.platform.Characteristic.TemperatureDisplayUnits.FAHRENHEIT;
-    }
+    return this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS;
   }
 
   async setDisplayUnits(value: CharacteristicValue) {
-    if (value === this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS) {
-      this.displayUnitCelsius = true;
-    } else {
-      this.displayUnitCelsius = false;
-    }
 
-    this.platform.log.info('Setting temperature units to ' + value + ' for thermostat: ' + this.accessory.context.device.DisplayName);
+    this.platform.log.info('Failed to set temperature units to ' + value + ' for thermostat: ' + this.accessory.context.device.DisplayName);
   }
 
   // This is a global property

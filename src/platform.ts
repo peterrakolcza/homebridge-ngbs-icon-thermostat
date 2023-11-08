@@ -8,8 +8,6 @@ import { login, getDevices, getData } from './client';
 export let globalLogger: Logger;
 export let sessionID: string;
 export let iCONid: string;
-export let username: string;
-export let password: string;
 
 
 /**
@@ -31,8 +29,6 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
   ) {
     globalLogger = this.log;
     iCONid = this.config['iCONid'];
-    username = config['username'];
-    password = config['password'];
     this.log.debug('Finished initializing platform:', this.config.name);
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -42,10 +38,14 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
-      login().then((session) => {
+      login(config['username'], config['password']).then((session) => {
         sessionID = session as string;
         this.discoverDevices();
       });
+
+      setInterval(async () => {
+        sessionID = await login(config['username'], config['password']) as string;
+      }, 3600000);
     });
   }
 
