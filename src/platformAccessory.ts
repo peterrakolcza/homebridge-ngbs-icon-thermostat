@@ -1,6 +1,6 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
-import { NGBSiCONThermostat } from './platform';
+import { NGBSiCONThermostat, globalLogger } from './platform';
 import { setAttr, getDevices } from './client';
 
 /**
@@ -59,12 +59,8 @@ export class NGBSiCONThermostatAccessory {
 
   async findDevice() {
     const devices = await getDevices();
-
-    if (devices !== null) {
-      return devices.find(item => item.ID === this.id);
-    }
-
-    throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+    globalLogger.debug(devices);
+    return devices.find(item => item.ID === this.id);
   }
 
   async getCurrentTemp(): Promise<CharacteristicValue> {

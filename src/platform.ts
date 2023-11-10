@@ -3,7 +3,7 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { NGBSiCONThermostatAccessory } from './platformAccessory';
 
-import { login, getDevices, getData } from './client';
+import { login, getDevices } from './client';
 
 export let globalLogger: Logger;
 export let sessionID: string;
@@ -45,7 +45,7 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
 
       setInterval(async () => {
         sessionID = await login(config['username'], config['password']) as string;
-      }, 3600000);
+      }, 600000);
     });
   }
 
@@ -68,20 +68,24 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
   async discoverDevices() {
     const fetchedData = await getDevices();
     let Devices;
-    if (fetchedData !== null) {
+    if (fetchedData !== undefined && Object.keys(fetchedData).length > 0) {
       Devices = fetchedData.map(device => {
         return {
           UniqueId: device.ID,
           DisplayName: device.title,
         };
       });
+    } else if (fetchedData !== undefined && Object.keys(fetchedData).length === 0) {
+      this.api.unregisterPlatformAccessories(
+        PLUGIN_NAME,
+        PLATFORM_NAME,
+        this.accessories,
+      );
+      this.log.error('Invalid email and/or password.');
+      return;
     } else {
-      const response = await getData();
-      const homes = response.ICONS;
-      const homeIds = Object.keys(homes);
-
-      globalLogger.info('Available Home IDs associated with the given account: ' + homeIds);
-      throw new this.api.hap.HapStatusError(this.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+      this.log.error('Invalid or nonexistent HomeID.');
+      return;
     }
 
     // loop over the discovered devices and register each one if it has not already been registered

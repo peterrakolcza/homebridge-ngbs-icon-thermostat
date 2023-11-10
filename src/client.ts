@@ -30,8 +30,7 @@ export async function login(username: string, password: string) {
       });
 
       if (response2.data.includes('Bejelentkezés')) {
-        globalLogger.error('Failed to login and connect to the client: ' + response2.data);
-        process.exit(1);
+        globalLogger.debug('Failed to login and/or connect to the client: ' + response2.data);
       }
 
       return sessionID;
@@ -51,6 +50,7 @@ export async function getData() {
       },
     });
 
+    globalLogger.debug(response.data);
     return response.data;
   } catch (error) {
     if (error instanceof Error) {
@@ -85,12 +85,19 @@ export async function setAttr(deviceID: string, attr: string, value: string) {
 export async function getDevices() {
   const response = await getData();
 
-  const home = response.ICONS[iCONid];
+  try {
 
-  if (home !== undefined) {
-    return home.DP;
-  } else {
-    return null;
+    const home = response.ICONS[iCONid];
+
+    if (home !== undefined) {
+      return home.DP;
+    } else {
+      return undefined;
+    }
+  } catch (error) {
+    if (response.includes('Bejelentkezés')) {
+      return {};
+    }
   }
 
 }
