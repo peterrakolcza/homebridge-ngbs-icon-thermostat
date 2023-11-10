@@ -7,7 +7,7 @@
 
 [![npm Release](https://flat.badgen.net/npm/v/homebridge-ngbs-icon-thermostat?icon=npm)](https://www.npmjs.com/package/homebridge-ngbs-icon-thermostat) [![npm Download Total](https://flat.badgen.net/npm/dt/homebridge-ngbs-icon-thermostat?icon=npm)](https://www.npmjs.com/package/homebridge-ngbs-icon-thermostat)
 
-[![Apple HomeKit](https://flat.badgen.net/badge/apple/homekit/f89f1a?icon=apple)](https://www.apple.com/ios/home/) 
+[![Apple HomeKit](https://flat.badgen.net/badge/apple/homekit/f89f1a?icon=apple)](https://www.apple.com/ios/home/) [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 
 </span>
 
