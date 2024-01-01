@@ -1,7 +1,7 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
 import { NGBSiCONThermostat, globalLogger } from './platform';
-import { setAttr, getDevices } from './client';
+import { setAttr, data, isWinter } from './client';
 
 /**
  * Platform Accessory
@@ -58,7 +58,8 @@ export class NGBSiCONThermostatAccessory {
   }
 
   async findDevice() {
-    const devices = await getDevices();
+    const devices = data;
+
     globalLogger.debug(devices);
     return devices.find(item => item.ID === this.id);
   }
@@ -85,11 +86,19 @@ export class NGBSiCONThermostatAccessory {
   async getCurrentState(): Promise<CharacteristicValue> {
     const device = await this.findDevice();
 
-    if (device.OUT === 0) {
+    /*if (device.OUT === 0) {
       return this.platform.Characteristic.CurrentHeatingCoolingState.OFF;
     } else if (device.OUT === 1 && device.TEMP < device.REQ) {
       return this.platform.Characteristic.CurrentHeatingCoolingState.HEAT;
     } else if (device.OUT === 1 && device.TEMP > device.REQ) {
+      return this.platform.Characteristic.CurrentHeatingCoolingState.COOL;
+    }*/
+
+    if (device.OUT === 0) {
+      return this.platform.Characteristic.CurrentHeatingCoolingState.OFF;
+    } else if (device.OUT === 1 && isWinter) {
+      return this.platform.Characteristic.CurrentHeatingCoolingState.HEAT;
+    } else if (device.OUT === 1 && !isWinter) {
       return this.platform.Characteristic.CurrentHeatingCoolingState.COOL;
     }
 

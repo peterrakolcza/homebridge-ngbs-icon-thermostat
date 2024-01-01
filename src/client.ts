@@ -4,6 +4,8 @@ import FormData from 'form-data';
 import { globalLogger, sessionID, iCONid } from './platform';
 
 const baseURL = 'https://enzoldhazam.hu';
+export let data; // Data buffer for the devices. It helps to reduce the number of requests necessary.
+export let isWinter; // Determines if it is cooling or heating season
 
 export async function login(username: string, password: string) {
   try {
@@ -90,6 +92,13 @@ export async function getDevices() {
     const home = response.ICONS[iCONid];
 
     if (home !== undefined) {
+      data = home.DP;
+      if (home.CON_VALUE === 0) {
+        isWinter = true;
+      } else {
+        isWinter = false;
+      }
+
       return home.DP;
     } else {
       return undefined;

@@ -43,9 +43,15 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
         this.discoverDevices();
       });
 
+      // Updates the session every hour
       setInterval(async () => {
         sessionID = await login(config['username'], config['password']) as string;
       }, 600000);
+
+      // Updates the data every 10s
+      setInterval(async () => {
+        await getDevices();
+      }, 10000);
     });
   }
 
