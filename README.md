@@ -14,7 +14,7 @@
 ## Supported Features
 
 <div align="left">
-  <img align="right" width="319" alt="Photo of the NGBS Thermostat Homebridge plugin." src="assets/photo.jpg">
+  <img align="right" height="350" alt="Photo of the NGBS Thermostat Homebridge plugin." src="assets/photo.jpg">
   <b>Native HomeKit Thermostat Control for NGBS iCONs</b>
   <ul>
     <li>🌡️ Temperature Control: Adjust the target temperature of your NGBS iCON Thermostat directly from the Home app.</li>
