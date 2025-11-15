@@ -1,6 +1,6 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
-import { NGBSiCONThermostat, globalLogger } from './platform';
+import { globalLogger, NGBSiCONThermostat } from './platform';
 import { setAttr, data, isWinter } from './client';
 
 /**
@@ -60,23 +60,25 @@ export class NGBSiCONThermostatAccessory {
   async findDevice() {
     const devices = data;
 
-    globalLogger.debug(devices);
     return devices.find(item => item.ID === this.id);
   }
 
   async getCurrentTemp(): Promise<CharacteristicValue> {
+    globalLogger.debug('getCurrentTemp');
     const device = await this.findDevice();
 
     return device.TEMP;
   }
 
   async getTargetTemp(): Promise<CharacteristicValue> {
+    globalLogger.debug('getTargetTemp');
     const device = await this.findDevice();
 
     return device.REQ;
   }
 
   async setTargetTemp(value: CharacteristicValue) {
+    globalLogger.debug('setTargetTemp');
     // Only allow changing in steps of 0.5
     const nearestHalfDecimal = Math.round(value as number / 0.5) * 0.5;
     await setAttr(this.id.toString(), 'CE', '0'); // set ECO mode
@@ -84,6 +86,7 @@ export class NGBSiCONThermostatAccessory {
   }
 
   async getCurrentState(): Promise<CharacteristicValue> {
+    globalLogger.debug('getCurrentState');
     const device = await this.findDevice();
 
     /*if (device.OUT === 0) {
@@ -106,6 +109,7 @@ export class NGBSiCONThermostatAccessory {
   }
 
   async getTargetState(): Promise<CharacteristicValue> {
+    globalLogger.debug('getTargetState');
     const device = await this.findDevice();
 
     if (device.CE === 1) {
@@ -116,6 +120,7 @@ export class NGBSiCONThermostatAccessory {
   }
 
   async setTargetState(value: CharacteristicValue) {
+    globalLogger.debug('setTargetState');
     if (value === this.platform.Characteristic.TargetHeatingCoolingState.OFF) {
       await setAttr(this.id.toString(), 'CE', '1'); // set ECO mode
     } else if (value === this.platform.Characteristic.TargetHeatingCoolingState.AUTO) {

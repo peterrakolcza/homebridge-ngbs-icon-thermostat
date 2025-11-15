@@ -1,14 +1,16 @@
-import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+import type { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory, PlatformConfig, Service } from 'homebridge';
 
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { NGBSiCONThermostatAccessory } from './platformAccessory';
+import { NGBSiCONThermostatAccessory } from './platformAccessory.js';
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 
-import { login, getDevices } from './client';
+// This is only required when using Custom Services and Characteristics not support by HomeKit
+import { EveHomeKitTypes } from 'homebridge-lib/EveHomeKitTypes';
 
-export let globalLogger: Logger;
+import { login, getDevices } from './client.js';
+
+export let globalLogger: Logging;
 export let sessionID: string;
 export let iCONid: string;
-
 
 /**
  * HomebridgePlatform
@@ -16,19 +18,33 @@ export let iCONid: string;
  * parse the user config and discover/register accessories with Homebridge.
  */
 export class NGBSiCONThermostat implements DynamicPlatformPlugin {
-  public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
+  public readonly Service: typeof Service;
+  public readonly Characteristic: typeof Characteristic;
 
   // this is used to track restored cached accessories
-  public readonly accessories: PlatformAccessory[] = [];
+  public readonly accessories: Map<string, PlatformAccessory> = new Map();
+  public readonly discoveredCacheUUIDs: string[] = [];
+
+  // This is only required when using Custom Services and Characteristics not support by HomeKit
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public readonly CustomServices: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public readonly CustomCharacteristics: any;
 
   constructor(
-    public readonly log: Logger,
+    public readonly log: Logging,
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
     globalLogger = this.log;
-    iCONid = this.config['iCONid'];
+    iCONid = this.config.iCONid;
+    this.Service = api.hap.Service;
+    this.Characteristic = api.hap.Characteristic;
+
+    // This is only required when using Custom Services and Characteristics not support by HomeKit
+    this.CustomServices = new EveHomeKitTypes(this.api).Services;
+    this.CustomCharacteristics = new EveHomeKitTypes(this.api).Characteristics;
+
     this.log.debug('Finished initializing platform:', this.config.name);
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -38,17 +54,17 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
-      login(config['username'], config['password']).then((session) => {
+      login(config.username, config.password).then((session) => {
         sessionID = session as string;
         this.discoverDevices();
       });
 
       // Updates the session every hour
       setInterval(async () => {
-        sessionID = await login(config['username'], config['password']) as string;
+        sessionID = await login(config.username, config.password) as string;
       }, 600000);
 
-      // Updates the data every 10s
+      // Pull latest data every 10s
       setInterval(async () => {
         await getDevices();
       }, 10000);
@@ -57,17 +73,17 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
 
   /**
    * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
+   * It should be used to set up event handlers for characteristics and update respective values.
    */
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
 
-    // add the restored accessory to the accessories cache so we can track if it has already been registered
-    this.accessories.push(accessory);
+    // add the restored accessory to the accessories cache, so we can track if it has already been registered
+    this.accessories.set(accessory.UUID, accessory);
   }
 
   /**
-   * This is an  method showing how to register discovered accessories.
+   * This is an example method showing how to register discovered accessories.
    * Accessories must only be registered once, previously created accessories
    * must not be registered again to prevent "duplicate UUID" errors.
    */
@@ -82,11 +98,12 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
         };
       });
     } else if (fetchedData !== undefined && Object.keys(fetchedData).length === 0) {
-      this.api.unregisterPlatformAccessories(
-        PLUGIN_NAME,
-        PLATFORM_NAME,
-        this.accessories,
-      );
+      for (const [uuid, accessory] of this.accessories) {
+        if (!this.discoveredCacheUUIDs.includes(uuid)) {
+          this.log.info('Removing existing accessory from cache:', accessory.displayName);
+          this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        }
+      }
       this.log.error('Invalid email and/or password.');
       return;
     } else {
@@ -96,21 +113,20 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
 
     // loop over the discovered devices and register each one if it has not already been registered
     for (const device of Devices) {
-
       // generate a unique id for the accessory this should be generated from
-      // something globally unique, but constant, for , the device serial
+      // something globally unique, but constant, for example, the device serial
       // number or MAC address
       const uuid = this.api.hap.uuid.generate(device.UniqueId);
 
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+      const existingAccessory = this.accessories.get(uuid);
 
       if (existingAccessory) {
         // the accessory already exists
         this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. e.g.:
         // existingAccessory.context.device = device;
         // this.api.updatePlatformAccessories([existingAccessory]);
 
@@ -118,7 +134,7 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
         // this is imported from `platformAccessory.ts`
         new NGBSiCONThermostatAccessory(this, existingAccessory);
 
-        // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+        // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, e.g.:
         // remove platform accessories when no longer present
         // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
         // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
@@ -139,6 +155,19 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      }
+
+      // push into discoveredCacheUUIDs
+      this.discoveredCacheUUIDs.push(uuid);
+    }
+
+    // you can also deal with accessories from the cache which are no longer present by removing them from Homebridge
+    // for example, if your plugin logs into a cloud account to retrieve a device list, and a user has previously removed a device
+    // from this cloud account, then this device will no longer be present in the device list but will still be in the Homebridge cache
+    for (const [uuid, accessory] of this.accessories) {
+      if (!this.discoveredCacheUUIDs.includes(uuid)) {
+        this.log.info('Removing existing accessory from cache:', accessory.displayName);
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
     }
   }

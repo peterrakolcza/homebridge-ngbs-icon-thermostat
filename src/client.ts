@@ -1,5 +1,5 @@
 import axios from 'axios';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import FormData from 'form-data';
 import { globalLogger, sessionID, iCONid } from './platform';
 
@@ -52,7 +52,6 @@ export async function getData() {
       },
     });
 
-    globalLogger.debug(response.data);
     return response.data;
   } catch (error) {
     if (error instanceof Error) {
@@ -77,6 +76,8 @@ export async function setAttr(deviceID: string, attr: string, value: string) {
         Cookie: sessionID,
       },
     });
+
+    globalLogger.debug(deviceID + ' thermostat: Updated ' + attr + ' to ' + value.toString());
   } catch (error) {
     if (error instanceof Error) {
       globalLogger.error(error.toString());
@@ -93,6 +94,7 @@ export async function getDevices() {
 
     if (home !== undefined) {
       data = home.DP;
+      globalLogger.debug(data);
       if (home.CON_VALUE === 0) {
         isWinter = true;
       } else {
