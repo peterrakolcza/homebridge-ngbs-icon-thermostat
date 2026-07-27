@@ -1,6 +1,9 @@
 # Ignore source code
 src
 
+# Screen recordings attached to bug reports
+*.mov
+
 # ------------- Defaults ------------- #
 
 # gitHub actions

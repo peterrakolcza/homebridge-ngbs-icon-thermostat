@@ -26,6 +26,12 @@
         "placeholder": "iCON ID (e.g. 123456789999)",
         "required": true,
         "description": "You can find it under System settings -> Home ID"
+      },
+      "manualHeatingCoolingSwitch": {
+        "type": "boolean",
+        "title": "Allow switching between heating and cooling",
+        "default": false,
+        "description": "Adds Heat and Cool next to Auto in the Home app. In most buildings the season is switched centrally and the controller ignores the request, so leave this off unless your system lets the thermostats decide. A thermostat that turns out not to be allowed to switch says so in the log and goes back to Auto on its own."
       }
     }
   }

@@ -6,7 +6,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 // This is only required when using Custom Services and Characteristics not support by HomeKit
 import { EveHomeKitTypes } from 'homebridge-lib/EveHomeKitTypes';
 
-import { login, getDevices } from './client.js';
+import { login, getDevices, errorMessage, switchoverMode, switchoverMaster } from './client.js';
 
 export let globalLogger: Logging;
 export let sessionID: string;
@@ -24,6 +24,16 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
   // this is used to track restored cached accessories
   public readonly accessories: Map<string, PlatformAccessory> = new Map();
   public readonly discoveredCacheUUIDs: string[] = [];
+
+  // the handlers of the registered thermostats, so that every poll can hand
+  // them their new state
+  private readonly thermostats: NGBSiCONThermostatAccessory[] = [];
+
+  // whether the last poll failed, so that an outage is only reported once
+  private disconnected = false;
+
+  // the login in flight, if any, so that concurrent renewals collapse into one
+  private renewing: Promise<void> | undefined;
 
   // This is only required when using Custom Services and Characteristics not support by HomeKit
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,21 +64,101 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
-      login(config.username, config.password).then((session) => {
-        sessionID = session as string;
-        this.discoverDevices();
-      });
+      this.start();
 
-      // Updates the session every hour
-      setInterval(async () => {
-        sessionID = await login(config.username, config.password) as string;
-      }, 600000);
+      // Backstop for a session that goes stale without the server saying so.
+      // An expired one is normally noticed by the poll and renewed there, so
+      // this rarely has anything to do.
+      setInterval(() => this.renewSession(), 3600000);
 
-      // Pull latest data every 10s
-      setInterval(async () => {
-        await getDevices();
-      }, 10000);
+      // Pull latest data every 10s. One request covers the whole home, however
+      // many thermostats are in it.
+      setInterval(() => this.refresh(), 10000);
     });
+  }
+
+  /**
+   * Logs in again, at most once at a time.
+   */
+  private renewSession(): Promise<void> {
+    this.renewing ??= (async () => {
+      const session = await login(this.config.username, this.config.password);
+
+      // Hold on to the previous session if the renewal failed: it is probably
+      // still valid, and dropping it would turn a hiccup into an outage.
+      if (session !== undefined) {
+        sessionID = session;
+      }
+
+      this.renewing = undefined;
+    })();
+
+    return this.renewing;
+  }
+
+  /**
+   * Logs in and registers the thermostats, retrying until the cloud answers.
+   * A timing out request used to take the whole child bridge down with it.
+   */
+  async start() {
+    const session = await login(this.config.username, this.config.password);
+
+    if (session === undefined) {
+      this.log.error('Could not log in to the NGBS iCON cloud, retrying in 30 seconds.');
+      setTimeout(() => this.start(), 30000);
+      return;
+    }
+
+    sessionID = session;
+
+    try {
+      await this.discoverDevices();
+    } catch (error) {
+      this.log.error('Could not retrieve the thermostats: ' + errorMessage(error) + '. Retrying in 30 seconds.');
+      setTimeout(() => this.start(), 30000);
+      return;
+    }
+
+    // Say up front what the controller reports about the switchover, so that a
+    // refused mode change later on is not a surprise.
+    if (this.config.manualHeatingCoolingSwitch === true) {
+      this.log.info('Manual heating/cooling switching is enabled. This system switches over in "' +
+        (switchoverMode ?? 'unknown') + '" mode' + (switchoverMaster === undefined ? '' : ', following "' + switchoverMaster + '"') +
+        '. Thermostats that turn out not to be allowed to switch will fall back to Auto.');
+    }
+  }
+
+  /**
+   * Refreshes the buffered state and hands it to the thermostats.
+   */
+  async refresh() {
+    try {
+      const thermostats = await getDevices();
+
+      // The cloud handed back the login page: the session is gone, so get a new
+      // one now rather than waiting for the hourly renewal.
+      if (thermostats !== undefined && thermostats.length === 0) {
+        this.log.debug('The session has expired, logging in again.');
+        await this.renewSession();
+        return;
+      }
+    } catch (error) {
+      // The poll runs every ten seconds, so only complain once per outage.
+      if (!this.disconnected) {
+        this.log.error('Lost contact with the NGBS iCON cloud: ' + errorMessage(error));
+        this.disconnected = true;
+      }
+      return;
+    }
+
+    if (this.disconnected) {
+      this.log.info('Reconnected to the NGBS iCON cloud.');
+      this.disconnected = false;
+    }
+
+    for (const thermostat of this.thermostats) {
+      thermostat.update();
+    }
   }
 
   /**
@@ -132,7 +222,7 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
 
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-        new NGBSiCONThermostatAccessory(this, existingAccessory);
+        this.thermostats.push(new NGBSiCONThermostatAccessory(this, existingAccessory));
 
         // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, e.g.:
         // remove platform accessories when no longer present
@@ -151,7 +241,7 @@ export class NGBSiCONThermostat implements DynamicPlatformPlugin {
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
-        new NGBSiCONThermostatAccessory(this, accessory);
+        this.thermostats.push(new NGBSiCONThermostatAccessory(this, accessory));
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);

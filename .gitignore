@@ -1,6 +1,9 @@
 # Ignore compiled code
 dist
 
+# Screen recordings attached to bug reports
+*.mov
+
 # ------------- Defaults ------------- #
 
 # Logs

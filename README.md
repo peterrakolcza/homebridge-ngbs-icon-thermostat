@@ -57,7 +57,8 @@ $ npm install -g homebridge-ngbs-icon-thermostat
     "platform": "NGBSiCONThermostat",
     "username": "YOUR_NGBS_USERNAME",
     "password": "YOUR_NGBS_PASSWORD",
-    "iCONid": "YOUR_NGBS_HOME_ID"
+    "iCONid": "YOUR_NGBS_HOME_ID",
+    "manualHeatingCoolingSwitch": false
   }
 ]
 ```
@@ -65,7 +66,14 @@ $ npm install -g homebridge-ngbs-icon-thermostat
 - `username` is the username for the NGBS web interface
 - `password` is the password for the NGBS web interface
 - `iCONid` is the id for the specific Home you want to add
+- `manualHeatingCoolingSwitch` (optional, defaults to `false`) adds Heat and Cool next to Auto in the Home app
+
 The plugin will add all of the thermostats associated with the given Home.
+
+### Heating and cooling
+Each thermostat is offered to HomeKit as **Off** or **Auto**. Auto follows whatever season the iCON system is running, and the Home app shows the actual mode (heating or cooling) as the thermostat's current state.
+
+Most installations, apartments in particular, switch between heating and cooling centrally, and the controller simply ignores a thermostat that asks to switch on its own. If your system does let the thermostats decide, turn on `manualHeatingCoolingSwitch` to get Heat and Cool as well. There is no way to ask the controller in advance whether it will accept the change, so the plugin tries it and watches the result: if the season has not changed within about half a minute, it logs a warning, puts the thermostat back to Auto and stops offering the two modes for the rest of the session.
 
 ### Troubleshooting
 I will add a proper FAQ...
