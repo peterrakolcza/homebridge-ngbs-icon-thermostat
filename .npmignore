@@ -1,6 +1,9 @@
 # Ignore source code
 src
 
+# Captured HTTP traffic, kept for working on the client
+sample requests
+
 # Screen recordings attached to bug reports
 *.mov
 
