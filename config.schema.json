@@ -31,7 +31,7 @@
         "type": "boolean",
         "title": "Allow switching between heating and cooling",
         "default": false,
-        "description": "Adds Heat and Cool next to Auto in the Home app. In most buildings the season is switched centrally and the controller ignores the request, so leave this off unless your system lets the thermostats decide. A thermostat that turns out not to be allowed to switch says so in the log and goes back to Auto on its own."
+        "description": "Lets Heat and Cool in the Home app ask the controller for the season. In most buildings the season is switched centrally and the controller ignores the request, so leave this off unless your system lets the thermostats decide; Heat and Cool then simply switch a thermostat on and it keeps reporting whichever season the system is running. A thermostat that turns out not to be allowed to switch says so in the log and goes back to following the system on its own."
       }
     }
   }

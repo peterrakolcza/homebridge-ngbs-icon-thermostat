@@ -39,7 +39,7 @@
 ## Introduction
 This homebridge plugin exposes all of the NGBS iCON thermostats for native control.
 
-**Note:** The thermostat accessory in Home app shows a single button to change the control mode. 'Auto' is the same as manual mode (the thermostat heat / cool the room to the specified temperature and maintain that). 'Off' is the same as Eco mode (the thermostats set the temperature to a low / high value, specified in the documentation of the manufacturer, to turn off the heating / cooling). Changing the temperature when set to 'Off' turns off Eco mode and starts heating / cooling if the desired value is higher / lower, than the current temperature.
+**Note:** The thermostat accessory in Home app shows a single button to change the control mode. 'Heat' and 'Cool' show the season the system is running and are the same as manual mode (the thermostat heat / cool the room to the specified temperature and maintain that). 'Off' is the same as Eco mode (the thermostats set the temperature to a low / high value, specified in the documentation of the manufacturer, to turn off the heating / cooling). Changing the temperature when set to 'Off' turns off Eco mode and starts heating / cooling if the desired value is higher / lower, than the current temperature.
 
 ## Compatibility
 Although I have not personally conducted rigorous tests to verify this claim, preliminary indications suggest that the plugin exhibits potential compatibility not only with the NGBS iCON 200 series thermostats but also with the iCON 100 series devices.
@@ -66,14 +66,18 @@ $ npm install -g homebridge-ngbs-icon-thermostat
 - `username` is the username for the NGBS web interface
 - `password` is the password for the NGBS web interface
 - `iCONid` is the id for the specific Home you want to add
-- `manualHeatingCoolingSwitch` (optional, defaults to `false`) adds Heat and Cool next to Auto in the Home app
+- `manualHeatingCoolingSwitch` (optional, defaults to `false`) lets the thermostats ask the controller to switch between heating and cooling
 
 The plugin will add all of the thermostats associated with the given Home.
 
 ### Heating and cooling
-Each thermostat is offered to HomeKit as **Off** or **Auto**. Auto follows whatever season the iCON system is running, and the Home app shows the actual mode (heating or cooling) as the thermostat's current state.
+Each thermostat reports the season the system is actually running — **Heat** while it is heating, **Cool** while it is cooling — so the Home app draws a warm dial in winter and a cold one in summer. **Off** stands in for Eco mode.
 
-Most installations, apartments in particular, switch between heating and cooling centrally, and the controller simply ignores a thermostat that asks to switch on its own. If your system does let the thermostats decide, turn on `manualHeatingCoolingSwitch` to get Heat and Cool as well. There is no way to ask the controller in advance whether it will accept the change, so the plugin tries it and watches the result: if the season has not changed within about half a minute, it logs a warning, puts the thermostat back to Auto and stops offering the two modes for the rest of the session.
+Most installations, apartments in particular, switch between heating and cooling centrally, and the controller simply ignores a thermostat that asks to switch on its own. Such a thermostat still accepts Heat and Cool — the tile in the Home app uses them to switch a thermostat back on, so turning them down would leave the tile unable to do it — it just takes them to mean "on" and goes on reporting the season the system is in. The same goes for **Auto**, which older scenes and automations may still ask for.
+
+If your system does let the thermostats decide, turn on `manualHeatingCoolingSwitch` and Heat and Cool will ask the controller for the season and be remembered. There is no way to ask in advance whether it will accept the change, so the plugin tries it and watches the result: if the season has not changed within about half a minute, it logs a warning and goes back to following the system for the rest of the session.
+
+If heating and cooling come out the wrong way round, run Homebridge in debug mode and look for the `season:` line — it prints everything the controller says about the season, which is what an issue about it needs.
 
 ### Troubleshooting
 I will add a proper FAQ...

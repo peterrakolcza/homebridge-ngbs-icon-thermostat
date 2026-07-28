@@ -134,6 +134,22 @@ export async function getDevices(): Promise<Thermostat[] | undefined> {
   controllerCooling = home.HC === undefined ? undefined : home.HC === 1;
   switchoverMode = home.HC_SWITCH_MODE;
   switchoverMaster = home.HC_MASTERICON;
+
+  // Everything the controller says about the season, not just the thermostats.
+  // A home that reports no HC of its own leaves the season to be read off the
+  // thermostats, and when they do not report one either the plugin has been
+  // taking the home for a heating one - so these are the values to ask for when
+  // heating and cooling come out the wrong way round.
+  globalLogger.debug('season: %o', {
+    HC: home.HC,
+    HC_SWITCH: home.HC_SWITCH,
+    HC_SW_VALUE: home.HC_SW_VALUE,
+    HC_SWITCH_MODE: home.HC_SWITCH_MODE,
+    HC_MASTERICON: home.HC_MASTERICON,
+    HCMASTER: home.HCMASTER,
+    WTEMP: home.WTEMP,
+    thermostats: devices.map(device => ({ ID: device.ID, HC: device.HC, OUT: device.OUT, CE: device.CE })),
+  });
   globalLogger.debug('%o', devices);
 
   return devices;

@@ -19,10 +19,6 @@ export class NGBSiCONThermostatAccessory {
   private service: Service;
   private id: string;
 
-  // The modes currently offered to HomeKit, remembered so that they are only
-  // republished when they actually change.
-  private states: number[] = [];
-
   // A manual switchover waiting to be confirmed by the controller, and how many
   // polls it has been waiting for.
   private pending: { cooling: boolean; polls: number } | undefined;
@@ -63,7 +59,28 @@ export class NGBSiCONThermostatAccessory {
 
     this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState)
       .onGet(this.getTargetState.bind(this))
-      .onSet(this.setTargetState.bind(this));
+      .onSet(this.setTargetState.bind(this))
+      .setProps({
+        // Every mode, whether or not this system lets a thermostat pick one.
+        //
+        // The tile in the Home app turns a thermostat back on by asking for Heat
+        // or Cool, without limiting itself to the modes the accessory offers.
+        // Listing fewer does not stop it: hap-nodejs turns down a mode that is
+        // not listed before this plugin is asked about it, and HomeKit shows the
+        // refusal as "No Response". So accept all four and treat the ones this
+        // thermostat cannot honour as plain "on" - setTargetState() settles the
+        // mode that gets reported back.
+        //
+        // Auto is kept on the list for the same reason, even though it is no
+        // longer reported: this plugin offered it as the on state for years, so
+        // it is what older scenes and automations still ask for.
+        validValues: [
+          this.platform.Characteristic.TargetHeatingCoolingState.OFF,
+          this.platform.Characteristic.TargetHeatingCoolingState.HEAT,
+          this.platform.Characteristic.TargetHeatingCoolingState.COOL,
+          this.platform.Characteristic.TargetHeatingCoolingState.AUTO,
+        ],
+      });
 
     this.service.getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits)
       .onGet(this.getDisplayUnits.bind(this))
@@ -97,16 +114,28 @@ export class NGBSiCONThermostatAccessory {
   }
 
   /**
-   * The mode HomeKit is asked to show while the thermostat is on. Auto means
-   * "whatever season the system is running", which is all a thermostat in a
-   * centrally switched building can offer. It is kept in the accessory context
-   * so that a manual choice survives a restart.
+   * The mode HomeKit is asked to show while the thermostat is on.
+   *
+   * A thermostat that cannot pick a season of its own shows the one the system
+   * is actually in. The Home app draws its dial from this and not from the
+   * current state, so reporting Auto - honest as it is - leaves a room that is
+   * being cooled with the same warm dial it has in winter.
    */
   private get mode(): number {
-    return this.accessory.context.mode ?? this.platform.Characteristic.TargetHeatingCoolingState.AUTO;
+    const { HEAT, COOL } = this.platform.Characteristic.TargetHeatingCoolingState;
+    const chosen = this.accessory.context.mode;
+
+    // A manual choice only holds for as long as this thermostat is allowed to
+    // make one. Anything else follows the season.
+    if (chosen !== undefined && this.switchoverAllowed()) {
+      return chosen;
+    }
+
+    return isCooling(this.device) ? COOL : HEAT;
   }
 
-  private set mode(mode: number) {
+  /** Remembers a manual season choice, or forgets it. Survives a restart. */
+  private set mode(mode: number | undefined) {
     if (this.accessory.context.mode !== mode) {
       this.accessory.context.mode = mode;
       this.platform.api.updatePlatformAccessories([this.accessory]);
@@ -125,8 +154,9 @@ export class NGBSiCONThermostatAccessory {
   /**
    * A manual switchover is only a request. The controller silently ignores it
    * when the season is switched centrally, so watch the polls that follow and
-   * fall back to Auto - and stop offering the modes - once it is clear that
-   * this thermostat is not allowed to decide for itself.
+   * fall back to following the system once it is clear that this thermostat is
+   * not allowed to decide for itself. Heat and Cool go on being accepted after
+   * that, they just mean "on" from then on.
    */
   private checkSwitchover() {
     const device = this.device;
@@ -146,11 +176,11 @@ export class NGBSiCONThermostatAccessory {
 
     this.pending = undefined;
     this.switchoverRejected = true;
-    this.mode = this.platform.Characteristic.TargetHeatingCoolingState.AUTO;
+    this.mode = undefined; // the choice is not this thermostat's to make
 
     this.platform.log.warn(
       this.accessory.displayName + ' cannot switch between heating and cooling on its own' + this.switchoverHint() +
-      '. Falling back to Auto, which follows whatever the system is running.');
+      '. Falling back to whatever season the system is running.');
   }
 
   /** Whatever the controller told us about who owns the switchover. */
@@ -166,13 +196,6 @@ export class NGBSiCONThermostatAccessory {
   /** Whether this thermostat may ask the controller to switch season. */
   private switchoverAllowed(): boolean {
     return this.platform.config.manualHeatingCoolingSwitch === true && !this.switchoverRejected;
-  }
-
-  /** The modes to offer HomeKit. */
-  private validStates(): number[] {
-    const { OFF, HEAT, COOL, AUTO } = this.platform.Characteristic.TargetHeatingCoolingState;
-
-    return this.switchoverAllowed() ? [OFF, HEAT, COOL, AUTO] : [OFF, AUTO];
   }
 
   /**
@@ -194,13 +217,6 @@ export class NGBSiCONThermostatAccessory {
    */
   private publish() {
     const { CurrentHeatingCoolingState, TargetHeatingCoolingState } = this.platform.Characteristic;
-    const states = this.validStates();
-
-    if (states.join() !== this.states.join()) {
-      this.states = states;
-      this.service.getCharacteristic(TargetHeatingCoolingState).setProps({ validValues: states });
-    }
-
     const device = this.device;
 
     if (device === undefined) {
@@ -294,18 +310,21 @@ export class NGBSiCONThermostatAccessory {
   }
 
   async setTargetState(value: CharacteristicValue) {
-    const { OFF, HEAT, COOL, AUTO } = this.platform.Characteristic.TargetHeatingCoolingState;
+    const { OFF, HEAT, COOL } = this.platform.Characteristic.TargetHeatingCoolingState;
     const device = this.device;
     const eco = value === OFF ? 1 : 0;
     const changes: Record<string, number> = { CE: eco };
 
     // Heat and cool ask the controller to switch season, which it is free to
-    // refuse. HomeKit is only asked not to send them, and a warning is all it
-    // gets for sending them anyway, so the option is enforced here as well.
+    // refuse, and which most systems reserve for themselves. Where this
+    // thermostat is not allowed to choose, they still mean "on" - that is how
+    // the tile in the Home app turns a thermostat back on - and so does Auto,
+    // which older scenes and automations still carry. Any of them that is not a
+    // real switchover forgets the manual choice and goes back to the season.
     const switching = (value === HEAT || value === COOL) && this.switchoverAllowed();
 
     if (value !== OFF) {
-      this.mode = switching ? value as number : AUTO;
+      this.mode = switching ? value as number : undefined;
     }
 
     if (device?.CE !== eco) {
@@ -324,6 +343,14 @@ export class NGBSiCONThermostatAccessory {
     }
 
     this.apply(changes);
+
+    // hap-nodejs stores the mode it was asked for once this handler returns,
+    // which would undo the season that apply() just reported for a mode this
+    // thermostat cannot honour. Report it again after that has happened, so the
+    // Home app does not keep showing a mode the system is not in.
+    if (value !== OFF && this.mode !== value) {
+      setImmediate(() => this.publish());
+    }
   }
 
   // Also a global property
